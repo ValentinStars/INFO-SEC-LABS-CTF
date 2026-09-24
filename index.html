@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INFO SEC LABS | Open-Source Pentesting Curriculum & CTF Writeups</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-hover: #161e31;
+      --border: #1f293d;
+      --border-focus: #3b82f6;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --purple: #a855f7;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 0 1.5rem 4rem;
+      min-height: 100vh;
+    }
+
+    /* Ambient background grid */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 60%),
+                  linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      padding: 3.5rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .badge-top span.pulse {
+      width: 8px;
+      height: 8px;
+      background-color: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 780px;
+    }
+
+    /* Flags Banner */
+    .flag-banner {
+      background: linear-gradient(90deg, #131d33 0%, #172440 100%);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 2rem 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .flag-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .flag-icon {
+      font-size: 1.75rem;
+    }
+
+    .flag-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .flag-string {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: #f8fafc;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      word-break: break-all;
+    }
+
+    /* Nav Tabs / Filter */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .filter-btn:hover {
+      background: var(--card-hover);
+      color: var(--text-main);
+      border-color: #334155;
+    }
+
+    .filter-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Search input */
+    .search-bar {
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 0.85rem 1.25rem 0.85rem 2.75rem;
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Section headings */
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 2.5rem 0 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-left: 1rem;
+    }
+
+    /* Cards Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #334155;
+      background: var(--card-hover);
+      box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      gap: 0.75rem;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .tag-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .tag-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+    }
+
+    .code-box {
+      background: #090e1a;
+      border: 1px solid #1a2333;
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+
+    .code-box code {
+      white-space: nowrap;
+      color: #e2e8f0;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .copy-btn:hover {
+      color: #ffffff;
+      background: #1e293b;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stars {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      transition: gap 0.2s, color 0.2s;
+    }
+
+    .btn-link:hover {
+      color: #7dd3fc;
+      gap: 0.6rem;
+    }
+
+    /* CTF Stage Cards */
+    .ctf-card {
+      border-left: 4px solid var(--accent);
+    }
+    .ctf-card.t1 { border-left-color: var(--amber); }
+    .ctf-card.t2 { border-left-color: var(--purple); }
+    .ctf-card.t3 { border-left-color: var(--green); }
+
+    /* Footer */
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .flag-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="badge-top">
+        <span class="pulse"></span>
+        INFO SEC LABS CTF & OPEN CURRICULUM
+      </div>
+      <h1>Практический пентест и веб-безопасность</h1>
+      <p class="lead">
+        Интерактивный навигатор по открытым репозиториям, заменяющим коммерческий курс ЦАРКА (TSARKA), и полный разбор заданий CTF с исходными кодами и солверами.
+      </p>
+
+      <!-- Flags Banner -->
+      <div class="flag-banner">
+        <div class="flag-info">
+          <div class="flag-icon">🏁</div>
+          <div>
+            <div class="flag-title">Итоговый флаг (пароль к TSARKA COURSE.rar)</div>
+            <div class="flag-string" id="mainFlag">Flag_{1c3aa737eac3.png_japan_apple_}</div>
+          </div>
+        </div>
+        <button class="filter-btn active" onclick="copyText('Flag_{1c3aa737eac3.png_japan_apple_}', this)">Скопировать флаг</button>
+      </div>
+    </header>
+
+    <!-- Search & Filter Controls -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию репозитория, атакам (SQLi, Wi-Fi, PrivEsc, XSS)..." onkeyup="filterItems()">
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-category="all" onclick="setCategory('all', this)">Все материалы</button>
+      <button class="filter-btn" data-category="ctf" onclick="setCategory('ctf', this)">CTF Задачи & Солверы</button>
+      <button class="filter-btn" data-category="core" onclick="setCategory('core', this)">Базовый пентест</button>
+      <button class="filter-btn" data-category="web" onclick="setCategory('web', this)">Веб-безопасность</button>
+      <button class="filter-btn" data-category="wifi" onclick="setCategory('wifi', this)">Аудит Wi-Fi</button>
+      <button class="filter-btn" data-category="privesc" onclick="setCategory('privesc', this)">Постэксплуатация / PrivEsc</button>
+    </div>
+
+    <!-- CTF Section -->
+    <h2 class="section-title">Разбор задач INFO SEC LABS CTF</h2>
+    <div class="grid" id="ctfGrid">
+
+      <!-- Task 1 -->
+      <div class="card ctf-card t1" data-cat="ctf">
+        <div class="card-header">
+          <h3 class="card-title">Task 01: IITU 10000</h3>
+          <span class="tag tag-amber">Forensic / Stego</span>
+        </div>
+        <p class="card-desc">
+          Поиск настоящего логотипа IITU среди 10 000 зашумленных PNG-файлов через анализ энтропии и размер сжатого чанка IDAT (zlib).
+        </p>
+        <div class="code-box">
+          <code>python3 tasks/01-iitu-10000/solve.py</code>
+          <button class="copy-btn" onclick="copyText('python3 tasks/01-iitu-10000/solve.py', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">ID папки: 6741 (³ = 306318327021)</span>
+          <a href="tasks/01-iitu-10000/README.md" class="btn-link">Writeup & Код →</a>
+        </div>
+      </div>
+
+      <!-- Task 2 -->
+      <div class="card ctf-card t2" data-cat="ctf">
+        <div class="card-header">
+          <h3 class="card-title">Task 02: Rainbow QR</h3>
+          <span class="tag tag-purple">Crypto / OSINT</span>
+        </div>
+        <p class="card-desc">
+          Восстановление квадратного QR-кода из 7 полосок по спектру радуги (КОЖЗГСФ), сканирование через OpenCV и OSINT исполнителя Fujii Kaze (Япония).
+        </p>
+        <div class="code-box">
+          <code>python3 tasks/02-rainbow-qr/solve.py</code>
+          <button class="copy-btn" onclick="copyText('python3 tasks/02-rainbow-qr/solve.py', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">Страна: japan (Japan)</span>
+          <a href="tasks/02-rainbow-qr/README.md" class="btn-link">Writeup & Код →</a>
+        </div>
+      </div>
+
+      <!-- Task 3 -->
+      <div class="card ctf-card t3" data-cat="ctf">
+        <div class="card-header">
+          <h3 class="card-title">Task 03: Morse & Ryuk Riddle</h3>
+          <span class="tag tag-green">Audio Stego / Base32</span>
+        </div>
+        <p class="card-desc">
+          Извлечение скрытого WAV-аудио после маркера IEND, цифровой анализ огибающей Морзе, Base32 декодирование загадки Рюка из Тетради Смерти.
+        </p>
+        <div class="code-box">
+          <code>python3 tasks/03-morse-stego/solve.py</code>
+          <button class="copy-btn" onclick="copyText('python3 tasks/03-morse-stego/solve.py', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">Ответ: apple</span>
+          <a href="tasks/03-morse-stego/README.md" class="btn-link">Writeup & Код →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Open Source Curriculum Section -->
+    <h2 class="section-title">Открытый курс по практическому пентесту</h2>
+    <div class="grid" id="courseGrid">
+
+      <!-- TCM PEH -->
+      <div class="card" data-cat="core">
+        <div class="card-header">
+          <h3 class="card-title">Practical Ethical Hacking</h3>
+          <span class="tag tag-blue">Core Curriculum</span>
+        </div>
+        <p class="card-desc">
+          Открытые материалы и методички легендарного курса от The Cyber Mentor: полный цикл от сканирования сетей и веб-атак до AD и финального отчета.
+        </p>
+        <div class="code-box">
+          <code>git clone https://github.com/TCM-Course-Resources/Practical-Ethical-Hacking-Resources.git</code>
+          <button class="copy-btn" onclick="copyText('git clone https://github.com/TCM-Course-Resources/Practical-Ethical-Hacking-Resources.git', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 6.1k</span>
+          <a href="https://github.com/TCM-Course-Resources/Practical-Ethical-Hacking-Resources" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- OWASP WSTG -->
+      <div class="card" data-cat="web">
+        <div class="card-header">
+          <h3 class="card-title">OWASP Web Security Testing Guide</h3>
+          <span class="tag tag-blue">Web AppSec</span>
+        </div>
+        <p class="card-desc">
+          Мировой стандарт тестирования веб-приложений. Подробные чек-листы по SQLi, XSS, CSRF, SSRF, IDOR и обходам бизнес-логики.
+        </p>
+        <div class="code-box">
+          <code>https://owasp.org/www-project-web-security-testing-guide/</code>
+          <button class="copy-btn" onclick="copyText('https://owasp.org/www-project-web-security-testing-guide/', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 9.9k</span>
+          <a href="https://github.com/OWASP/wstg" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- PayloadsAllTheThings -->
+      <div class="card" data-cat="web">
+        <div class="card-header">
+          <h3 class="card-title">PayloadsAllTheThings</h3>
+          <span class="tag tag-blue">Web / Exploits</span>
+        </div>
+        <p class="card-desc">
+          Крупнейшая коллекция боевых нагрузок, пейлоадов, техник обхода WAF и реверс-шеллов для всех веб-уязвимостей из курса ЦАРКА.
+        </p>
+        <div class="code-box">
+          <code>git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git</code>
+          <button class="copy-btn" onclick="copyText('git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 81.1k</span>
+          <a href="https://github.com/swisskyrepo/PayloadsAllTheThings" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- WiFiChallengeLab Docker -->
+      <div class="card" data-cat="wifi">
+        <div class="card-header">
+          <h3 class="card-title">WiFiChallengeLab (Docker)</h3>
+          <span class="tag tag-green">Wi-Fi Lab</span>
+        </div>
+        <p class="card-desc">
+          Официальный Docker-стенд лаборатории wifichallengelab.com из домашних заданий ЦАРКА. Работает без физических Wi-Fi адаптеров через mac80211_hwsim!
+        </p>
+        <div class="code-box">
+          <code>git clone https://github.com/r4ulcl/WiFiChallengeLab-docker.git</code>
+          <button class="copy-btn" onclick="copyText('git clone https://github.com/r4ulcl/WiFiChallengeLab-docker.git', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 430+</span>
+          <a href="https://github.com/r4ulcl/WiFiChallengeLab-docker" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- PEASS-ng (linPEAS / winPEAS) -->
+      <div class="card" data-cat="privesc">
+        <div class="card-header">
+          <h3 class="card-title">PEASS-ng (PrivEsc Suite)</h3>
+          <span class="tag tag-purple">Privilege Escalation</span>
+        </div>
+        <p class="card-desc">
+          Утилиты linPEAS и winPEAS. Автоматический поиск векторов эскалации прав: cron-wildcards, sudoers, SUID, Unquoted Service Paths и реестр Windows.
+        </p>
+        <div class="code-box">
+          <code>curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh</code>
+          <button class="copy-btn" onclick="copyText('curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 14.5k</span>
+          <a href="https://github.com/peass-ng/PEASS-ng" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- HackTricks -->
+      <div class="card" data-cat="privesc">
+        <div class="card-header">
+          <h3 class="card-title">HackTricks Wiki</h3>
+          <span class="tag tag-purple">Knowledge Base</span>
+        </div>
+        <p class="card-desc">
+          Главная мировая энциклопедия по пентесту: пошаговые сценарии взлома сервисов, сетевых протоколов, Linux/Windows эскалации и облачных сред.
+        </p>
+        <div class="code-box">
+          <code>https://book.hacktricks.xyz/</code>
+          <button class="copy-btn" onclick="copyText('https://book.hacktricks.xyz/', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 12.4k</span>
+          <a href="https://github.com/HackTricks-wiki/hacktricks" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- OWASP Juice Shop -->
+      <div class="card" data-cat="web">
+        <div class="card-header">
+          <h3 class="card-title">OWASP Juice Shop</h3>
+          <span class="tag tag-blue">Web Practice Lab</span>
+        </div>
+        <p class="card-desc">
+          Уязвимое современное веб-приложение для безопасной практики веб-атак. Поднимается локально в Docker одной строкой.
+        </p>
+        <div class="code-box">
+          <code>docker run --rm -p 3000:3000 bkimminich/juice-shop</code>
+          <button class="copy-btn" onclick="copyText('docker run --rm -p 3000:3000 bkimminich/juice-shop', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 11.5k</span>
+          <a href="https://github.com/juice-shop/juice-shop" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+      <!-- PortSwigger Exam Guide -->
+      <div class="card" data-cat="web">
+        <div class="card-header">
+          <h3 class="card-title">PortSwigger Labs Study Guide</h3>
+          <span class="tag tag-blue">PortSwigger Solvers</span>
+        </div>
+        <p class="card-desc">
+          Гайд и методички по закрытию всех лабораторных PortSwigger Web Security Academy (Apprentice / Practitioner), заданных в курсе ЦАРКА.
+        </p>
+        <div class="code-box">
+          <code>https://portswigger.net/web-security</code>
+          <button class="copy-btn" onclick="copyText('https://portswigger.net/web-security', this)">Копировать</button>
+        </div>
+        <div class="card-footer">
+          <span class="stars">⭐ 1.4k</span>
+          <a href="https://github.com/botesjuan/Burp-Suite-Certified-Practitioner-Exam-Study-Guide" target="_blank" rel="noopener" class="btn-link">GitHub Repo →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        Подготовлено для <strong>ValentinStars</strong> · 
+        <a href="https://github.com/ValentinStars/INFO-SEC-LABS-CTF">Репозиторий на GitHub</a> · 
+        Разработано в образовательных целях.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    let currentCategory = 'all';
+
+    function setCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.filters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterItems();
+    }
+
+    function filterItems() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.card');
+
+      cards.forEach(card => {
+        const cat = card.getAttribute('data-cat') || '';
+        const text = card.innerText.toLowerCase();
+
+        const matchesCat = (currentCategory === 'all') || (cat === currentCategory);
+        const matchesQuery = !q || text.includes(q);
+
+        if (matchesCat && matchesQuery) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Скопировано!';
+        btn.style.color = '#34d399';
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.style.color = '';
+        }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>
