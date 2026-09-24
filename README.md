@@ -30,7 +30,8 @@
                  │ Пароль от архива курса
                  ▼
 ┌─────────────────────────────────┐
-│   TSARKA COURSE.rar (46 МБ)     │ ──► Успешно распакован! 14 лекций по пентесту
+│   TSARKA COURSE.rar (33 МБ)     │ ──► Лежит в course/TSARKA COURSE.rar
+│   (Оригинальный защищенный архив)│ ──► Пароль: Flag_{1c3aa737eac3.png_japan_apple_}
 └─────────────────────────────────┘
 ```
 
@@ -73,6 +74,7 @@ python3 tasks/03-morse-stego/solve.py
 
 Вместе с распаковкой лекций курса ЦАРКА сформирована открытая дорожная карта на базе лучших Open-Source проектов:
 
+- **[course/TSARKA COURSE.rar](course/TSARKA%20COURSE.rar)** — Оригинальный архив с 14 лекциями ЦАРКА (распаковка: `7z x -p'Flag_{1c3aa737eac3.png_japan_apple_}' "course/TSARKA COURSE.rar"`).
 - **[course/README.md](course/README.md)** — Текстовый справочник и карта открытого курса.
 - **[index.html](index.html)** — Интерактивный веб-дашборд с фильтрами по темам, командами запуска полигонов в Docker и ссылками на репозитории:
   - **Recon & OSINT**: TCM Practical Ethical Hacking, OWASP WSTG.
